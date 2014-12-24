@@ -113,5 +113,10 @@ if ! shopt -oq posix; then
   fi
 fi
 
+
+# Postscript **************************************************
 # rm コマンドでゴミ箱に入れる
 alias rm='trash'
+
+# キー割り当ての変更を適用
+xmodmap ~/.Xmodmap
