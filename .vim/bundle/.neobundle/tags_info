@@ -1,7 +1,9 @@
+caw.vim
 emmet-vim
 grep.vim
 minibufexpl.vim
 neobundle.vim
+neocomplete.vim
 nerdtree
 syntastic
 vim-autoclose

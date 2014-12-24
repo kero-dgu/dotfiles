@@ -69,6 +69,11 @@ noremap <C-H> <C-W>h
 noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
 noremap <C-L> <C-W>l
+" caw.vim でコメント化の切り替え
+nmap \c <Plug>(caw:I:toggle)
+vmap \c <Plug>(caw:I:toggle)
+nmap \C <Plug>(caw:I:uncomment)
+vmap \C <Plug>(caw:I:uncomment)
 
 
 " NeoBundle **************************************************
@@ -83,9 +88,14 @@ function! s:LoadBundles()
   NeoBundleFetch 'Shougo/neobundle.vim'   " NeoBundle 自身を管理する場合は NeoBundleFetch とする
   NeoBundle 'tpope/vim-surround'          " 選択範囲を括弧などで囲む
 
-  " 補完候補を自動表示
+  " neocomplete - 補完候補を自動表示
+  if has('lua')   " Lua がないと neocomplete は使えない
+    NeoBundle 'Shougo/neocomplete.vim'
+    let g:neocomplete#enable_at_startup = 1         " 補完を有効にする
+    let g:neocomplete#skip_auto_complete_time = ""  " 補完に時間がかかってもスキップしない
+  endif
 
-  " NERDTree
+  " NERDTree - ファイルエクスプローラー
   NeoBundle 'scrooloose/nerdtree'
   let NERDTreeShowHidden=1    " 隠しファイルを表示する
   let file_name=expand('%:p') " 引数なしで実行しhた時に、NERDTree を実行する
@@ -93,14 +103,15 @@ function! s:LoadBundles()
   NeoBundle 'Townk/vim-autoclose'
   NeoBundle 'mattn/emmet-vim'
 
-  " QuickRun
+  " QuickRun - プログラムを実行
   NeoBundle 'thinca/vim-quickrun'
   set splitbelow  " 新しいウィンドウを下に開く
   let g:quickrun_config = {'*': {'hook/time/enable': '1'},}   " 実行速度を表示
 
   NeoBundle 'fholgado/minibufexpl.vim'  " バッファをタブで管理する
-  NeoBundle 'grep.vim'
-  NeoBundle 'scrooloose/syntastic'
+  NeoBundle 'grep.vim'                  " grep 検索
+  NeoBundle 'scrooloose/syntastic'      " シンタックスエラーのチェック?
+  NeoBundle 'tyru/caw.vim'              " 素早くコメントアウト
 endfunction
 
 " NeoBundle がインストールされているなら LoadBundles() を呼び出す, インストールされていないなら WithoutBundles() を呼び出す
