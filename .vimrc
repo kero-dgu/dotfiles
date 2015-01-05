@@ -1,13 +1,15 @@
 " Add paths  **************************************************
 " C/C++ の標準ライブラリへのパスを追加
-augroup c-path
-  autocmd!
-  autocmd FileType c set path+=C:\pg\mingw64\x86_64-w64-mingw32\include\
-augroup END
 augroup cpp-path
   autocmd!
-  autocmd FileType cpp set path+=C:\pg\mingw64\x86_64-w64-mingw32\include\c++\
+  autocmd FileType c,cpp set path+=C:\pg\mingw64\x86_64-w64-mingw32\include\
 augroup END
+
+
+" Autocmd **************************************************
+" python
+autocmd FileType python setl tabstop=1 expandtab shiftwidth=2 softtabstop=2
+autocmd FileType python set omnifunc=pythoncomplete#Complete
 
 
 " Backup **************************************************
@@ -18,6 +20,7 @@ set directory=$HOME/.vim/backup  " スワップファイル用のディレクト
 " Colorscheme **************************************************
 syntax on
 colorscheme Sunburst
+set t_Co=256
 
 
 " Clipboard **************************************************
@@ -39,8 +42,8 @@ set list
 set listchars=tab:>.,trail:_,eol:$,extends:>,precedes:<,nbsp:%
 
 " Font
-set guifont=Monaco:h9
-set guifontwide=MeiryoKe_Gothic:h9
+set guifont=Monaco:h9:w5
+set guifontwide=MeiryoKe_Gothic:h9:w5
 set antialias                         " アンチエイリアス
 
 
@@ -76,6 +79,10 @@ set nocompatible
 " set imdisable
 " un~ ファイルを作成しない
 set noundofile
+" 改行時の自動コメントアウトを無効化
+set formatoptions-=ro
+" 保存時に行末の空白を自動で削除
+autocmd BufWritePre * :%s/\s\+$//ge
 
 
 " Keybind **************************************************
@@ -83,6 +90,11 @@ set noundofile
 imap <C-j> <esc>
 " C-j C-j でハイライト OFF
 nnoremap <C-j><C-j> :<C-u>set nohlsearch<Return>
+" 分割ウィンドウ時に移動を行う
+noremap <C-H> <C-W>h
+noremap <C-J> <C-W>j
+noremap <C-K> <C-W>k
+noremap <C-L> <C-W>l
 
 
 " NeoBundle **************************************************
@@ -96,33 +108,77 @@ call neobundle#begin(expand('~/.vim/bundle/'))
 " ここからプラグインを記述 ==============================
 NeoBundleFetch 'Shougo/neobundle.vim'   " NeoBundle 自身を管理する場合は NeoBundleFetch とする
 
+NeoBundle 'Align'
+NeoBundle 'Townk/vim-autoclose'
+NeoBundle 'grep.vim'
+NeoBundle 'scrooloose/syntastic'
+NeoBundle 'tyru/caw.vim'
+
 " neocomplete - 補完候補を自動表示
 if has('lua')   " Lua がないと neocomplete は使えない
   NeoBundle 'Shougo/neocomplete.vim'
-  let g:neocomplete#enable_at_startup = 1         " 補完を有効にする
-  let g:neocomplete#skip_auto_complete_time = ""  " 補完に時間がかかってもスキップしない
+  let g:neocomplete#enable_at_startup  = 1
+  let g:neocomplete#enable_ignore_case = 1
+  let g:neocomplete#enable_smart_case  = 1
+  if !exists('g:neocomplete#keyword_patterns')
+    let g:neocomplete#keyword_patterns = {}
+  endif
+  let g:neocomplete#keyword_patterns._ = '\h\w*'
 endif
 
-NeoBundle 'Townk/vim-autoclose'
-NeoBundle 'grep.vim'                  " grep 検索
-NeoBundle 'scrooloose/syntastic'      " シンタックスエラーのチェック?
+" taglist - ctags を利用したアウトライン
+NeoBundle 'wesleyche/SrcExpl'
+NeoBundle 'vim-scripts/taglist.vim'
+set tags=tags
+let Tlist_Ctags_Cmd = 'C:/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags'
+let Tlist_Show_One_File = 1
+let Tlist_Use_Right_Window = 1
+let Tlist_Exit_OnlyWindow = 1
+let g:SrcExpl_updateTagsCmd = 'C:/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags --sort=foldcase -R .'
+map <F2> <ESC>:bp<CR>
+map <F3> <ESC>:bn<CR>
+map <F4> <ESC>:bw<CR>
+
+NeoBundle 'hokorobi/vim-tagsgen'
+
+" vim-rooter - プロジェクトのルートディレクトリを見つけて移動するコマンドを実装
+NeoBundle 'airblade/vim-rooter'
+if !empty(neobundle#get('vim-rooter'))
+  let g:rooter_use_lcd=1
+  let g:rooter_patterns=['tags', '.tags', '.git', '.git/', '_darcs/', '.hg/', '.bzr/', 'Makefile', 'GNUMakefile', 'GNUmakefile', '.svn/']
+endif
+
+" Unite - ファイルの管理など
+NeoBundle 'Shougo/unite.vim'
+let g:vim_tags_project_tags_command = "/c/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
 
 " minibufexpl - バッファをタブのように管理
 NeoBundle 'fholgado/minibufexpl.vim'
-" 分割ウィンドウ時に移動を行う
-noremap <C-H> <C-W>h
-noremap <C-J> <C-W>j
-noremap <C-K> <C-W>k
-noremap <C-L> <C-W>l
+let g:miniBufExplSplitBelow=0        " Put new window above
+let g:miniBufExplMapWindowNavArrows=1
+let g:miniBufExplMapCTabSwitchBufs=1
+let g:miniBufExplModSelTarget=1
+let g:miniBufExplSplitToEdge=1
 
 " neosnippet - スニペット
 NeoBundle 'Shougo/neosnippet.vim'
 NeoBundle 'Shougo/neosnippet-snippets'
+imap <C-k> <Plug>(neosnippet_expand_or_jump)
+smap <C-k> <Plug>(neosnippet_expand_or_jump)
+" SuperTab like snippets behavior.
+"imap <expr><TAB> neosnippet#expandable() ? "\<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "\<C-n>" : "\<TAB>"
+"smap <expr><TAB> neosnippet#expandable() ? "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
+" For snippet_complete marker.
+if has('conceal')
+  set conceallevel=2 concealcursor=i
+endif
 
 " NERDTree - ファイルエクスプローラー
 NeoBundle 'scrooloose/nerdtree'
 let NERDTreeShowHidden=1    " 隠しファイルを表示する
 let file_name=expand('%:p') " 引数なしで実行した時に、NERDTree を実行する
+" デフォルトでツリーを表示する
+"autocmd VimEnter * execute 'NERDTree'
 " NERDTree の表示を切り替え
 nnoremap <silent><C-e> :NERDTreeToggle<CR>
 
