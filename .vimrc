@@ -1,15 +1,20 @@
 " Add paths  **************************************************
-" C/C++ の標準ライブラリへのパスを追加
-augroup cpp-path
+" C 関連の標準ライブラリへのパスを追加
+augroup AddPaths
   autocmd!
-  autocmd FileType c,cpp set path+=C:\pg\mingw64\x86_64-w64-mingw32\include\
+  if has('win32') || has('win64')
+    autocmd FileType c,cpp set path+=C:\pg\mingw64\x86_64-w64-mingw32\include\
+  elseif has('mac')
+    autocmd FileType c,cpp,objc set path+=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/6.0/include,/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1/,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/usr/include,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks\ (framework\ director)
+  endif
 augroup END
 
 
 " Autocmd **************************************************
-" python
-autocmd FileType python setl tabstop=1 expandtab shiftwidth=2 softtabstop=2
-autocmd FileType python set omnifunc=pythoncomplete#Complete
+augroup EditNewFile
+  autocmd!
+  autocmd BufNewFile * echo 'This is new file'
+augroup END
 
 
 " Backup **************************************************
@@ -41,11 +46,6 @@ source $VIMRUNTIME/menu.vim
 set list
 set listchars=tab:>.,trail:_,eol:$,extends:>,precedes:<,nbsp:%
 
-" Font
-set guifont=Monaco:h9:w5
-set guifontwide=MeiryoKe_Gothic:h9:w5
-set antialias                         " アンチエイリアス
-
 
 " Highlight **************************************************
 set list
@@ -70,6 +70,9 @@ endif
 " Indent **************************************************
 set autoindent
 set smartindent
+inoremap {<Enter> {}<Left><CR><ESC><S-o>
+inoremap [<Enter> []<Left><CR><ESC><S-o>
+inoremap (<Enter> ()<Left><CR><ESC><S-o>
 
 
 " Initialialization **************************************************
@@ -112,7 +115,9 @@ NeoBundle 'Align'
 NeoBundle 'Townk/vim-autoclose'
 NeoBundle 'grep.vim'
 NeoBundle 'scrooloose/syntastic'
-NeoBundle 'tyru/caw.vim'
+
+" color themes
+NeoBundle 'tomasr/molokai'
 
 " neocomplete - 補完候補を自動表示
 if has('lua')   " Lua がないと neocomplete は使えない
@@ -124,22 +129,61 @@ if has('lua')   " Lua がないと neocomplete は使えない
     let g:neocomplete#keyword_patterns = {}
   endif
   let g:neocomplete#keyword_patterns._ = '\h\w*'
+
+  " neocomplete と clang_complete を併用するための設定
+  let g:marching_enable_neocomplete = 1
+  if !exists('g:neocomplete#force_omni_input_patterns')
+    let g:neocomplete#force_omni_input_patterns = {}
+  endif
+  let g:neocomplete#force_overwrite_completefunc = 1
+  let g:neocomplete#force_omni_input_patterns.c =
+    \ '[^.[:digit:] *\t]\%(\.\|->\)'
+  let g:neocomplete#force_omni_input_patterns.cpp =
+    \ '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
+  let g:neocomplete#force_omni_input_patterns.objc =
+    \ '[^.[:digit:] *\t]\%(\.\|->\)'
+  let g:neocomplete#force_omni_input_patterns.objcpp =
+    \ '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
 endif
 
+" clang_complete - C/C++/Objective-C に特化した補完
+NeoBundle 'tokorom/clang_complete'
+let g:clang_complete_auto=0  " neocomplete との競合を避けるため
+let g:clang_auto_select=0
+let g:clang_use_library=1
+let g:clang_debug=1
+if has('mac')
+  let g:clang_library_path='/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib'
+endif
+
+" clang_complete-getopts-ios
+if has('mac')
+  NeoBundle 'tokorom/clang_complete-getopts-ios'
+  let g:clang_complete_getopts_ios_default_options='-w -fblocks -fobjc-arc -D __IPHONE_OS_VERSION_MIN_REQUIRED=40300 -include ./**/*-Prefix.pch -F /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator8.1.sdk/System/Library/Frameworks -I /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator8.1.sdk/usr/include'
+  let g:clang_complete_getopts_ios_sdk_directory = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator8.1.sdk'
+  let g:clang_complete_getopts_ios_ignore_directories = ["^\.git", "\.xcodeproj"]
+endif
+
+" caw.vim - コメントアウト
+NeoBundle 'tyru/caw.vim'
+nmap <Leader>c <Plug>(caw:I:toggle)
+vmap <Leader>c <Plug>(caw:I:toggle)
+
 " taglist - ctags を利用したアウトライン
-NeoBundle 'wesleyche/SrcExpl'
 NeoBundle 'vim-scripts/taglist.vim'
 set tags=tags
-let Tlist_Ctags_Cmd = 'C:/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags'
+if has('win32') || has('win64')
+  let Tlist_Ctags_Cmd = 'C:/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags'
+elseif has('mac')
+  let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
+endif
 let Tlist_Show_One_File = 1
 let Tlist_Use_Right_Window = 1
 let Tlist_Exit_OnlyWindow = 1
-let g:SrcExpl_updateTagsCmd = 'C:/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags --sort=foldcase -R .'
-map <F2> <ESC>:bp<CR>
-map <F3> <ESC>:bn<CR>
-map <F4> <ESC>:bw<CR>
+map <silent> <leader>l :TlistToggle<CR>
 
-NeoBundle 'hokorobi/vim-tagsgen'
+NeoBundle 'vim-scripts/TagHighlight'
+
 
 " vim-rooter - プロジェクトのルートディレクトリを見つけて移動するコマンドを実装
 NeoBundle 'airblade/vim-rooter'
@@ -153,12 +197,12 @@ NeoBundle 'Shougo/unite.vim'
 let g:vim_tags_project_tags_command = "/c/pg/Ctags/ec58j2w32bin/ctags58j2bin/ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
 
 " minibufexpl - バッファをタブのように管理
-NeoBundle 'fholgado/minibufexpl.vim'
-let g:miniBufExplSplitBelow=0        " Put new window above
-let g:miniBufExplMapWindowNavArrows=1
-let g:miniBufExplMapCTabSwitchBufs=1
-let g:miniBufExplModSelTarget=1
-let g:miniBufExplSplitToEdge=1
+" NeoBundle 'fholgado/minibufexpl.vim'
+" let g:miniBufExplSplitBelow=0        " Put new window above
+" let g:miniBufExplMapWindowNavArrows=1
+" let g:miniBufExplMapCTabSwitchBufs=1
+" let g:miniBufExplModSelTarget=1
+" let g:miniBufExplSplitToEdge=1
 
 " neosnippet - スニペット
 NeoBundle 'Shougo/neosnippet.vim'
@@ -204,6 +248,11 @@ set incsearch    " インクリメンタルサーチを行う
 set smartcase    " 検索時に大文字小文字を区別
 
 
+" Syntax **************************************************
+" Objective-C
+let g:filetype_m = 'objc'
+
+
 " Tab **************************************************
 set expandtab  " タブの代わりに空白文字を挿入する
 set shiftwidth=2
@@ -222,3 +271,5 @@ set ruler               " ルーラーの表示
 set colorcolumn=80,100  " 80行目に印が出る
 " ステータスラインに文字コードと改行文字を表示する
 set statusline=%<%f\ %m%r%h%w%{'['.(&fenc!=''?&fenc:&enc).']['.&ff.']'}%=%l,%c%V%8P
+
+
