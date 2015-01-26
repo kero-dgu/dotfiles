@@ -114,7 +114,7 @@ NeoBundle 'Align'
 NeoBundle 'Townk/vim-autoclose'
 NeoBundle 'grep.vim'
 NeoBundle 'scrooloose/syntastic'
-
+NeoBundle 'nathanaelkane/vim-indent-guides'
 " color themes
 NeoBundle 'tomasr/molokai'
 
@@ -168,6 +168,11 @@ if has('mac')
   let g:clang_complete_getopts_ios_sdk_directory = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator8.1.sdk'
   let g:clang_complete_getopts_ios_ignore_directories = ["^\.git", "\.xcodeproj"]
 endif
+
+" Syntaxs
+NeoBundle 'kchmck/vim-coffee-script'
+NeoBundle 'digitaltoad/vim-jade'
+NeoBundle 'groenewege/vim-less'
 
 " caw.vim - コメントアウト
 NeoBundle 'tyru/caw.vim'
@@ -263,10 +268,26 @@ set incsearch    " インクリメンタルサーチを行う
 set smartcase    " 検索時に大文字小文字を区別
 
 
-" Syntax **************************************************
+" Syntaxs**************************************************
+" Coffee-Script
+" coffee ファイルタイプを設定
+au BufRead,BufNewFile,BufReadPre *.coffee set filetype=coffee
+" エラーがあったら別ウィンドウで表示
+autocmd QuickFixCmdPost * nested cwindow | redraw!
+" 保存時にコンパイル
+autocmd BufWritePost *.coffee silent CoffeeMake! -cb | cwindow | redraw!
+" Ctrl-c で右ウィンドウにコンパイル結果を一時的に表示する
+nnoremap <silent> <C-C> :CoffeeCompile vert <CR><C-w>h
+" ==================================================
+
+" Jade
+autocmd BufNewFile,BufRead *.jade set filetype=jade
+let g:quickrun_config['jade']={'command': 'jade', 'cmdopt': '-P', 'exec': ['%c &o < %s']}
+" ==================================================
+
 " Objective-C
 let g:filetype_m = 'objc'
-
+" ==================================================
 
 " Tab **************************************************
 set expandtab  " タブの代わりに空白文字を挿入する

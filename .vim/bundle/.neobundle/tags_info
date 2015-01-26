@@ -15,5 +15,9 @@ titanium-vim
 unite.vim
 vim-altr
 vim-autoclose
+vim-coffee-script
+vim-indent-guides
+vim-jade
+vim-less
 vim-quickrun
 vim-rooter
