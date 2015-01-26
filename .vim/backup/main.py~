@@ -1,0 +1,39 @@
+'''
+王様達のヴァイキングの暗号
+gzip で暗号を展開
+https://twitter.com/kingsviking/status/550316211243061250
+http://play.golang.org/p/0FPOy4gwWD
+'''
+
+
+import zlib
+
+
+def main():
+  data = '00000013b9a9ac630020a66265596246764093a999918a91615a4586a2a269a840cca4fafc0755f29cd294d4d4fc0f5594c28cecc2d4dce4cc37ff20454a91560080b8f1'
+  data = reverse_string(data)
+  print(zlib.decompress(data))
+
+def check_string(data):
+  '''
+  引数の値が文字列型かどうか調べる
+  @param    data  調べる文字列
+  @return   bool
+  '''
+  if isinstance(data, str):
+    if len(data) > 0:
+      return True
+  return False
+
+def reverse_string(data):
+  '''
+  文字列を逆順にして返す
+  @param    data
+  @return   str
+  '''
+  if check_string(data) == True:
+    return ''.join(reversed(list(data)))
+  return None
+
+if __name__ == '__main__':
+  main()

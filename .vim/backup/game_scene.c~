@@ -1,0 +1,36 @@
+#include "game_scene.h"
+#include "../managers/game.h"
+#include "../managers/keyboard.h"
+
+
+/**
+ * ゲームシーンの初期化
+ */
+void init_game_scene(void)
+{
+  set_background_color("#000000", 1.0f);
+}
+
+/**
+ * ゲームシーンの更新
+ */
+void update_game_scene(void)
+{
+}
+
+/**
+ * ゲームシーンの描画
+ */
+void draw_game_scene(void)
+{
+  set_background_color("#0000ff", 1.0f);
+  draw_rect(100, 100, 300, 200);
+}
+
+/**
+ * ゲームシーンの終了
+ */
+void fin_game_scene(void)
+{
+
+}
