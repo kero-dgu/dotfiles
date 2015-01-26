@@ -275,7 +275,7 @@ au BufRead,BufNewFile,BufReadPre *.coffee set filetype=coffee
 " エラーがあったら別ウィンドウで表示
 autocmd QuickFixCmdPost * nested cwindow | redraw!
 " 保存時にコンパイル
-autocmd BufWritePost *.coffee silent CoffeeMake! -cb | cwindow | redraw!
+" autocmd BufWritePost *.coffee silent CoffeeMake! -cb | cwindow | redraw!
 " Ctrl-c で右ウィンドウにコンパイル結果を一時的に表示する
 nnoremap <silent> <C-C> :CoffeeCompile vert <CR><C-w>h
 " ==================================================
