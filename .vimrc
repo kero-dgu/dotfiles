@@ -23,6 +23,7 @@ set directory=$HOME/.vim/backup  " スワップファイル用のディレクト
 
 
 " Colorscheme **************************************************
+colorscheme molokai
 syntax on
 set t_Co=256
 
@@ -68,7 +69,7 @@ endif
 
 " Indent **************************************************
 set autoindent
-set smartindent
+" set smartindent
 inoremap {<Enter> {}<Left><CR><ESC><S-o>
 inoremap [<Enter> []<Left><CR><ESC><S-o>
 inoremap (<Enter> ()<Left><CR><ESC><S-o>
@@ -97,6 +98,9 @@ noremap <C-H> <C-W>h
 noremap <C-J> <C-W>j
 noremap <C-K> <C-W>k
 noremap <C-L> <C-W>l
+" 日付と時刻を挿入
+inoremap ,date <C-R>=strftime('%Y/%m/%d(%a)')<CR>
+inoremap ,time <C-R>=strftime('%H:%M')<CR>
 
 
 " NeoBundle **************************************************
@@ -113,10 +117,20 @@ NeoBundleFetch 'Shougo/neobundle.vim'   " NeoBundle 自身を管理する場合�
 NeoBundle 'Align'
 NeoBundle 'Townk/vim-autoclose'
 NeoBundle 'grep.vim'
-NeoBundle 'scrooloose/syntastic'
 NeoBundle 'nathanaelkane/vim-indent-guides'
-" color themes
+
+" syntastic - シンタックスチェック
 NeoBundle 'tomasr/molokai'
+NeoBundle 'scrooloose/syntastic'
+let g:syntastic_check_on_open=0
+let g:syntastic_check_on_wq=0
+" C
+let g:syntastic_c_check_header=1
+" C++
+let g:syntastic_cpp_check_header=1
+" Java
+let g:syntastic_java_javac_config_file_enabled=1
+let g:syntastic_java_javac_config_file='$HOME/.syntastic_javac_config'
 
 " neocomplete - 補完候補を自動表示
 if has('lua')   " Lua がないと neocomplete は使えない
@@ -173,6 +187,7 @@ endif
 NeoBundle 'kchmck/vim-coffee-script'
 NeoBundle 'digitaltoad/vim-jade'
 NeoBundle 'groenewege/vim-less'
+NeoBundle 'pekepeke/titanium-vim'
 
 " caw.vim - コメントアウト
 NeoBundle 'tyru/caw.vim'
@@ -183,28 +198,119 @@ vmap <Leader>c <Plug>(caw:I:toggle)
 NeoBundle 'itchyny/lightline.vim'
 let g:lightline = {
   \ 'colorscheme': 'wombat',
-  \ 'component': {
-  \   'readonly': '%{&readonly?"\u2b64":""}',
+  \ 'active': {
+  \   'left': [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ], ['ctrlpmark'] ],
+  \   'right': [ [ 'syntastic', 'lineinfo' ], ['percent'], [ 'fileformat', 'fileencoding', 'filetype' ] ]
   \ },
+  \ 'component_function': {
+  \   'fugitive': 'MyFugitive',
+  \   'filename': 'MyFilename',
+  \   'fileformat': 'MyFileformat',
+  \   'filetype': 'MyFiletype',
+  \   'fileencoding': 'MyFileencoding',
+  \   'mode': 'MyMode',
+  \   'ctrlpmark': 'CtrlPMark',
+  \ },
+  \ 'component_expand': {
+  \   'syntastic': 'SyntasticStatuslineFlag',
+  \ },
+  \ 'component_type': {
+  \   'syntastic': 'error',
+  \ },
+  \ 'separator': { 'left': '⮀', 'right': '⮂' },
+  \ 'subseparator': { 'left': '⮁', 'right': '⮃' }
   \ }
-
-" titanium-vim - Titanium mobile の補完
-NeoBundle 'pekepeke/titanium-vim'
-
-" taglist - ctags を利用したアウトライン
-NeoBundle 'vim-scripts/taglist.vim'
-set tags=tags
-if has('win32') || has('win64')
-  let Tlist_Ctags_Cmd = 'C:\pg\LLVM\lib\clang\3.5.0\lib\windows'
-elseif has('mac')
-  let Tlist_Ctags_Cmd = '/usr/local/bin/ctags'
-endif
-let Tlist_Show_One_File = 1
-let Tlist_Use_Right_Window = 1
-let Tlist_Exit_OnlyWindow = 1
-map <silent> <leader>l :TlistToggle<CR>
-
-NeoBundle 'vim-scripts/TagHighlight'
+function! MyModified()
+  return &ft =~ 'help' ? '' : &modified ? '+' : &modifiable ? '' : '-'
+endfunction
+function! MyReadonly()
+  return &ft !~? 'help' && &readonly ? 'RO' : ''
+endfunction
+function! MyFilename()
+  let fname = expand('%:t')
+  return fname == 'ControlP' ? g:lightline.ctrlp_item :
+    \ fname == '__Tagbar__' ? g:lightline.fname :
+    \ fname =~ '__Gundo\|NERD_tree' ? '' :
+    \ &ft == 'vimfiler' ? vimfiler#get_status_string() :
+    \ &ft == 'unite' ? unite#get_status_string() :
+    \ &ft == 'vimshell' ? vimshell#get_status_string() :
+    \ ('' != MyReadonly() ? MyReadonly() . ' ' : '') .
+    \ ('' != fname ? fname : '[No Name]') .
+    \ ('' != MyModified() ? ' ' . MyModified() : '')
+endfunction
+function! MyFugitive()
+  try
+    if expand('%:t') !~? 'Tagbar\|Gundo\|NERD' && &ft !~? 'vimfiler' && exists('*fugitive#head')
+      let mark = ''  " edit here for cool mark
+      let _ = fugitive#head()
+      return strlen(_) ? mark._ : ''
+    endif
+  catch
+  endtry
+  return ''
+endfunction
+function! MyFileformat()
+  return winwidth(0) > 70 ? &fileformat : ''
+endfunction
+function! MyFiletype()
+  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype : 'no ft') : ''
+endfunction
+function! MyFileencoding()
+  return winwidth(0) > 70 ? (strlen(&fenc) ? &fenc : &enc) : ''
+endfunction
+function! MyMode()
+  let fname = expand('%:t')
+  return fname == '__Tagbar__' ? 'Tagbar' :
+    \ fname == 'ControlP' ? 'CtrlP' :
+    \ fname == '__Gundo__' ? 'Gundo' :
+    \ fname == '__Gundo_Preview__' ? 'Gundo Preview' :
+    \ fname =~ 'NERD_tree' ? 'NERDTree' :
+    \ &ft == 'unite' ? 'Unite' :
+    \ &ft == 'vimfiler' ? 'VimFiler' :
+    \ &ft == 'vimshell' ? 'VimShell' :
+    \ winwidth(0) > 60 ? lightline#mode() : ''
+endfunction
+function! CtrlPMark()
+  if expand('%:t') =~ 'ControlP'
+    call lightline#link('iR'[g:lightline.ctrlp_regex])
+    return lightline#concatenate([g:lightline.ctrlp_prev, g:lightline.ctrlp_item
+          \ , g:lightline.ctrlp_next], 0)
+  else
+    return ''
+  endif
+endfunction
+let g:ctrlp_status_func = {
+  \ 'main': 'CtrlPStatusFunc_1',
+  \ 'prog': 'CtrlPStatusFunc_2',
+  \ }
+function! CtrlPStatusFunc_1(focus, byfname, regex, prev, item, next, marked)
+  let g:lightline.ctrlp_regex = a:regex
+  let g:lightline.ctrlp_prev = a:prev
+  let g:lightline.ctrlp_item = a:item
+  let g:lightline.ctrlp_next = a:next
+  return lightline#statusline(0)
+endfunction
+function! CtrlPStatusFunc_2(str)
+  return lightline#statusline(0)
+endfunction
+let g:tagbar_status_func = 'TagbarStatusFunc'
+function! TagbarStatusFunc(current, sort, fname, ...) abort
+    let g:lightline.fname = a:fname
+  return lightline#statusline(0)
+endfunction
+augroup AutoSyntastic
+  autocmd!
+  autocmd BufWritePost *.c,*.cpp call s:syntastic()
+augroup END
+function! s:syntastic()
+  SyntasticCheck
+  call lightline#update()
+endfunction
+let g:unite_force_overwrite_statusline = 0
+let g:vimfiler_force_overwrite_statusline = 0
+let g:vimshell_force_overwrite_statusline = 0
+" NeoBundle 'Lokaltog/vim-powerline'
+" end - lightline.vim ==============================
 
 " vim-rooter - プロジェクトのルートディレクトリを見つけて移動するコマンドを実装
 NeoBundle 'airblade/vim-rooter'
@@ -246,6 +352,15 @@ let file_name=expand('%:p') " 引数なしで実行した時に、NERDTree を�
 "autocmd VimEnter * execute 'NERDTree'
 " NERDTree の表示を切り替え
 nnoremap <silent><C-e> :NERDTreeToggle<CR>
+
+" tagbar - ctags を利用したアウトライン
+NeoBundle 'majutsushi/tagbar'
+let g:tagbar_width = 30
+nn <silent> <Leader>t :TagbarToggle<CR>
+
+" vim-tags - 保存時に tags ファイルを更新
+NeoBundle 'szw/vim-tags'
+let g:vim_tags_project_tags_command = "/usr/local/Cellar/ctags/5.8/bin/ctags -f .tags -R {OPTIONS} {DIRECTORY} 2>/dev/null &"
 
 " QuickRun - プログラムを実行
 NeoBundle 'thinca/vim-quickrun'
