@@ -29,11 +29,14 @@ set t_Co=256
 
 
 " Clipboard **************************************************
-set clipboard=unnamed  " クリップボードを連携
+" clipboard を vim と共有
+set clipboard=unnamed
+set clipboard=unnamedplus
 
 
 " Edit **************************************************
 set nowrap    " 折り返し禁止
+autocmd FileType html,jade set wrap
 
 " Encoding
 set encoding=utf-8
@@ -118,6 +121,7 @@ NeoBundle 'Align'
 NeoBundle 'Townk/vim-autoclose'
 NeoBundle 'grep.vim'
 NeoBundle 'nathanaelkane/vim-indent-guides'
+NeoBundle 'mattn/emmet-vim'
 
 " syntastic - シンタックスチェック
 NeoBundle 'tomasr/molokai'
@@ -357,6 +361,25 @@ nnoremap <silent><C-e> :NERDTreeToggle<CR>
 NeoBundle 'majutsushi/tagbar'
 let g:tagbar_width = 30
 nn <silent> <Leader>t :TagbarToggle<CR>
+" CoffeeTags を使って CoffeeScript に対応させる
+NeoBundle 'lukaszkorecki/CoffeeTags'
+let g:CoffeeAutoTagDisabled    = 1     " Disables autotaging on save (Default: 0 [false])
+let g:CoffeeAutoTagIncludeVars = 1  " Includes variables (Default: 0 [false])
+if executable('coffeetags')
+  let g:tagbar_type_coffee = {
+    \ 'ctagsbin' : 'coffeetags',
+    \ 'ctagsargs' : '',
+    \ 'kinds' : [
+      \ 'f:functions',
+      \ 'o:object',
+    \ ],
+    \ 'sro' : ".",
+    \ 'kind2scope' : {
+      \ 'f' : 'object',
+      \ 'o' : 'object',
+    \ }
+  \ }
+endif
 
 " vim-tags - 保存時に tags ファイルを更新
 NeoBundle 'szw/vim-tags'
@@ -387,26 +410,34 @@ set smartcase    " 検索時に大文字小文字を区別
 " Coffee-Script
 " coffee ファイルタイプを設定
 au BufRead,BufNewFile,BufReadPre *.coffee set filetype=coffee
+" 補完
+autocmd FileType javascript,coffee setlocal omnifunc=javascriptcomplete#CompleteJS
 " エラーがあったら別ウィンドウで表示
 autocmd QuickFixCmdPost * nested cwindow | redraw!
 " 保存時にコンパイル
 " autocmd BufWritePost *.coffee silent CoffeeMake! -cb | cwindow | redraw!
 " Ctrl-c で右ウィンドウにコンパイル結果を一時的に表示する
 nnoremap <silent> <C-C> :CoffeeCompile vert <CR><C-w>h
-" ==================================================
+" ==============================
 
 " Jade
 autocmd BufNewFile,BufRead *.jade set filetype=jade
 let g:quickrun_config['jade']={'command': 'jade', 'cmdopt': '-P', 'exec': ['%c &o < %s']}
-" ==================================================
+" ==============================
 
 " LESS
 autocmd BufRead,BufNewFile,BufReadPre *.less set filetype=less
-" ==================================================
+" ==============================
+
+" Titanium
+autocmd BufRead,BufNewFile,BufReadPre *.jmk set filetype=javascript
+autocmd BufRead,BufNewFile,BufReadPre *.tss set filetype=javascript
+" ==============================
 
 " Objective-C
 let g:filetype_m = 'objc'
-" ==================================================
+" ==============================
+
 
 " Tab **************************************************
 set expandtab  " タブの代わりに空白文字を挿入する

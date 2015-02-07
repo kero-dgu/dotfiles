@@ -1,6 +1,7 @@
 Align
-TagHighlight
+CoffeeTags
 caw.vim
+emmet-vim
 grep.vim
 lightline.vim
 molokai
@@ -10,7 +11,7 @@ neosnippet-snippets
 neosnippet.vim
 nerdtree
 syntastic
-taglist.vim
+tagbar
 titanium-vim
 unite.vim
 vim-altr
@@ -21,3 +22,4 @@ vim-jade
 vim-less
 vim-quickrun
 vim-rooter
+vim-tags
